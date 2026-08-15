@@ -1,0 +1,27 @@
+# Dependencies / build output
+node_modules/
+dist/
+
+# Environment / secrets
+.env
+
+# Runtime data
+server/data/*.sqlite
+server/uploads/*
+!server/uploads/.gitkeep
+!server/data/.gitkeep
+
+# OS / editor
+.DS_Store
+
+# Tooling artifacts
+.playwright-mcp/
+
+# Exam deliverable documents (kept out of the code repository)
+Project Documentation.docx
+Project Documentation.md
+Software Requirements Specification.md
+Technical_Debt_Plan.md
+Testing_Report.md
+UGLost_Implementation_Plan.md
+User_Manual.docx
