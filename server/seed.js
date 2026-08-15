@@ -4,29 +4,53 @@ const { sequelize, User, Item } = require('./models');
 
 const ADMIN_EMAIL = 'admin@ug.edu.gh';
 const ADMIN_PASSWORD = 'admin123';
+const STUDENT_EMAIL = 'test.student@st.ug.edu.gh';
+const STUDENT_PASSWORD = 'student123';
 
 async function seed() {
   await sequelize.sync();
 
-  const admin = await User.findOne({ where: { email: ADMIN_EMAIL } });
-  if (!admin) {
-    const user = await User.create({
-      name: 'Campus Security Admin',
-      email: ADMIN_EMAIL,
-      studentId: 'ADMIN-001',
-      passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 10),
-      role: 'admin',
-    });
-    console.log(`Created admin user: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
-    await seedItems(user.id);
-  } else if ((await Item.count()) === 0) {
+  const admin = await ensureUser({
+    name: 'Campus Security Admin',
+    email: ADMIN_EMAIL,
+    studentId: 'ADMIN-001',
+    password: ADMIN_PASSWORD,
+    role: 'admin',
+  });
+
+  await ensureUser({
+    name: 'Test Student',
+    email: STUDENT_EMAIL,
+    studentId: 'STU-1001',
+    password: STUDENT_PASSWORD,
+    role: 'student',
+  });
+
+  if ((await Item.count()) === 0) {
     await seedItems(admin.id);
   } else {
-    console.log('Admin user and listings already present, nothing to seed.');
+    console.log('Sample listings already present, skipping.');
   }
 
   console.log('Seed complete.');
   process.exit(0);
+}
+
+async function ensureUser({ name, email, studentId, password, role }) {
+  const existing = await User.findOne({ where: { email } });
+  if (existing) {
+    console.log(`Already exists: ${email}`);
+    return existing;
+  }
+  const user = await User.create({
+    name,
+    email,
+    studentId,
+    passwordHash: await bcrypt.hash(password, 10),
+    role,
+  });
+  console.log(`Created ${role} user: ${email} / ${password}`);
+  return user;
 }
 
 async function seedItems(userId) {
