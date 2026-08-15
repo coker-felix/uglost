@@ -1,0 +1,45 @@
+# Render Blueprint — deploys both the UGLost API and client from this repo.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# IMPORTANT: persistent disks require a PAID web service on Render.
+# On the free plan the filesystem is ephemeral, so the SQLite DB and uploaded
+# photos reset on every redeploy/restart (the seed script re-creates the admin
+# and test accounts automatically). For a persistent DB, switch `plan` to
+# "starter" and uncomment the `disk` block below.
+
+services:
+  - type: web
+    name: uglost-api
+    runtime: docker
+    plan: free # change to "starter" ($7/mo) for a persistent disk
+    dockerfilePath: server/Dockerfile
+    dockerContext: server
+    healthCheckPath: /api/health
+    # disk:
+    #   name: uglost-data
+    #   mountPath: /data
+    #   sizeGB: 1
+    envVars:
+      - key: DATABASE_PATH
+        value: /data/uglost.sqlite
+      - key: UPLOAD_DIR
+        value: /data/uploads
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: MAX_UPLOAD_MB
+        value: "5"
+      - key: CLIENT_ORIGIN
+        value: "*"
+
+  - type: web
+    name: uglost-client
+    runtime: static
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        # Replace with your API's onrender.com URL (see DEPLOY.md step 4):
+        value: https://uglost-api.onrender.com/api
