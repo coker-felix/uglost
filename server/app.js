@@ -12,6 +12,10 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+// Trust the reverse proxy (nginx) so req.protocol reflects X-Forwarded-Proto
+// (https) and photo URLs are generated with the correct scheme.
+app.set('trust proxy', 1);
+
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
